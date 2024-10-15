@@ -56,7 +56,7 @@ async function removeUrl() {
 }
 
 // ============================================ insertProduct
-async function insertCource(queryValues) {
+async function insertCourse(queryValues) {
     const query = `
           insert into products ("url", "title", "sku", "description", "headlines", "price", "discount", "number_of_students", "duration", "teacher_name", "course_type", "course_level", "certificate_type", "education_place")
           values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
@@ -152,40 +152,41 @@ async function getPrice(page, xpaths, currency) {
     }
 }
 
-// ============================================ scrapSingleProduct
-async function scrapSingleProduct(page, productURL, imagesDIR, documentsDir, rowNumber = 1) {
+// ============================================ scrapeCourse
+async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
     try {
-        console.log(`======================== Start scraping : \n${productURL}\n`);
-        await page.goto(productURL, { timeout: 180000 });
-
+        console.log(`======================== Start scraping : \n${courseURL}\n`);
+        await page.goto(courseURL, { timeout: 180000 });
         await delay(5000);
-
+        
         let html = await page.content();
         let $ = await cheerio.load(html);
+        
+        // Generate uuidv4
+        const uuid = uuidv4().replace(/-/g, '');
+        
 
         const data = {};
-        data['title'] = $('h1').length ? $('h1').text().trim() : '';
-        data['category'] = $('.city-province')
-            .text()
-            ?.replace('استان', '')
-            ?.trim()
-            ?.split('،')[0]
-            ?.trim();
+        data['url'] = courseURL;
 
-        data['brand'] = $('.city-province')
-            .text()
-            ?.replace('استان', '')
-            ?.trim()
-            ?.split('،')[1]
-            ?.trim();
+        data['title'] = $('').length ? $('').text().trim() : '';
 
-        const emkanat = $(
-            '.product-modal .product-amenities-modal__content > div.product-amenities-modal-section'
+        data['sku'] = uuid;
+
+        data['description'] = ''
+
+        data['headlines'] = $(
+            '.accommodation-pdp-specifications__container > .accommodation-pdp-specification > .accommodation-pdp-specification-content'
         )
             .map((i, e) => {
-                const title = $(e).find('.product-amenities-modal-section__title').text()?.trim();
+                const title = $(e)
+                    .find('.accommodation-pdp-specification-content__title')
+                    .text()
+                    ?.trim();
                 const ambients = $(e)
-                    .find('.product-amenity > .product-amenity__main > .product-amenity__text')
+                    .find(
+                        '.accommodation-pdp-specification-description > .accommodation-pdp-specification-description__item'
+                    )
                     .map((i, e) => $(e).text()?.trim())
                     .get()
                     .join('\n');
@@ -194,7 +195,16 @@ async function scrapSingleProduct(page, productURL, imagesDIR, documentsDir, row
             .get()
             .join('\n\n');
 
-        data['unitOfMeasurement'] = emkanat;
+        data['price'] = ''
+        data['discount'] = ''
+        data['number_of_students'] = $("notFound").text()?.trim() || "";
+        data['duration'] = $("notFound").text()?.trim() || "";
+        data['teacher_name'] = $("notFound").text()?.trim() || "";
+        data['course_type'] = $("notFound").text()?.trim() || "";
+        data['course_level'] = $("notFound").text()?.trim() || "";
+        data['certificate_type'] = $("notFound").text()?.trim() || "";
+        data['education_place'] = $("notFound").text()?.trim() || "";
+
         data['price'] = '';
         data['xpath'] = '';
 
@@ -226,52 +236,11 @@ async function scrapSingleProduct(page, productURL, imagesDIR, documentsDir, row
         // }
 
         // specification, specificationString
-        const specificationString = $(
-            '.accommodation-pdp-specifications__container > .accommodation-pdp-specification > .accommodation-pdp-specification-content'
-        )
-            .map((i, e) => {
-                const title = $(e)
-                    .find('.accommodation-pdp-specification-content__title')
-                    .text()
-                    ?.trim();
-                const ambients = $(e)
-                    .find(
-                        '.accommodation-pdp-specification-description > .accommodation-pdp-specification-description__item'
-                    )
-                    .map((i, e) => $(e).text()?.trim())
-                    .get()
-                    .join('\n');
-                return `${title}:\n${ambients}`;
-            })
-            .get()
-            .join('\n\n');
 
-        // descriptionString
-        const descriptionString = $('.vuec-month')
-            .map((i, e) => {
-                const month = $(e).find('.vuec-month-name')?.text()?.trim();
-                const reservable = $(e)
-                    .find('.vuec-month-content .vuec-day.selectable .calendar-range-day__holder')
-                    .map((i, e) => {
-                        const day = $(e).find('.calendar-range-day__date').text()?.trim();
-                        const price = $(e).find('.calendar-range-day__price').text()?.trim();
-                        return `${day} - ${price}`;
-                    })
-                    .get()
-                    .join('\n');
-                return `${month}:\n${reservable}`;
-            })
-            .get()
-            .join('\n\n');
 
-        // Generate uuidv4
-        const uuid = uuidv4().replace(/-/g, '');
 
         // Download Images
-        const image_xpaths = [
-            '/html/body/div[1]/div/div/main/div/div[1]/article/header/div[2]/div//img[@class="gallery-img__image"]',
-        ];
-
+        const image_xpaths = [];
         let imageUrls = await Promise.all(
             image_xpaths.map(async (_xpath) => {
                 try {
@@ -299,6 +268,7 @@ async function scrapSingleProduct(page, productURL, imagesDIR, documentsDir, row
         imageUrls = [...new Set(imageUrls)];
         await downloadImages(imageUrls, imagesDIR, uuid);
 
+
         // download pdfs
         let pdfUrls = $('NotFound')
             .map((i, e) => $(e).attr('href'))
@@ -320,28 +290,29 @@ async function scrapSingleProduct(page, productURL, imagesDIR, documentsDir, row
             }
         }
 
-        // Returning Tehe Required Data For Excel
-        const productExcelDataObject = {
-            url,
-            title,
-            sku,
-            description,
-            headlines,
-            price,
-            discount,
-            number_of_students,
-            duration,
-            teacher_name,
-            course_type,
-            course_level,
-            certificate_type,
-            education_place,
+        // Returning The Required Data For Excel
+        const courseDataObject = {
+            url: data['url'],
+            title: data['title'],
+            sku: data['sku'] ,
+            description: data['description'],
+            headlines: data['headlines'],
+            price: data['price'],
+            discount: data['discount'],
+            number_of_students: data['number_of_students'],
+            duration: data['duration'],
+            teacher_name: data['teacher_name'],
+            course_type: data['course_type'],
+            course_level: data['course_level'],
+            certificate_type: data['certificate_type'],
+            education_place: data['education_place']
         };
 
-        return productExcelDataObject;
+        return courseDataObject;
+        
     } catch (error) {
-        console.log('Error In scrapSingleProduct in page.goto', error);
-        await insertUrlToProblem(productURL);
+        console.log('Error In scrapeCourse in page.goto', error);
+        await insertUrlToProblem(courseURL);
         return null;
     }
 }
@@ -356,7 +327,7 @@ async function main() {
         const IMAGES_DIR = path.normalize(DATA_DIR + '/images');
         const DOCUMENTS_DIR = path.normalize(DATA_DIR + '/documents');
 
-        // Create SteelAlborz Directory If Not Exists
+        // Create Directory If Not Exists
         if (!fs.existsSync(DATA_DIR)) {
             fs.mkdirSync(DATA_DIR);
         }
@@ -367,7 +338,7 @@ async function main() {
             fs.mkdirSync(IMAGES_DIR);
         }
 
-        // get product page url from db
+        // get course url from db
         urlRow = await removeUrl();
 
         if (urlRow?.url) {
@@ -384,29 +355,33 @@ async function main() {
                 height: 1080,
             });
 
-            const productInfo = await scrapSingleProduct(
+            const courseInfo = await scrapeCourse(
                 page,
                 urlRow.url,
                 IMAGES_DIR,
                 DOCUMENTS_DIR
             );
+
             const insertQueryInput = [
-                productInfo.URL,
-                productInfo.xpath,
-                productInfo.specifications,
-                productInfo.description,
-                productInfo.price,
-                productInfo.unitOfMeasurement,
-                productInfo.category,
-                productInfo.brand,
-                productInfo.SKU,
-                productInfo.name,
-                productInfo.row,
+                courseInfo.url,
+                courseInfo.title,
+                courseInfo.sku,
+                courseInfo.description,
+                courseInfo.headlines,
+                courseInfo.price,
+                courseInfo.discount,
+                courseInfo.number_of_students,
+                courseInfo.duration,
+                courseInfo.teacher_name,
+                courseInfo.course_type,
+                courseInfo.course_level,
+                courseInfo.certificate_type,
+                courseInfo.education_place
             ];
 
-            // if exists productInfo insert it to products
-            if (productInfo) {
-                await insertProduct(insertQueryInput);
+            // if exists courseInfo insert it to courses
+            if (courseInfo) {
+                await insertCourse(insertQueryInput);
                 await insertUrlToVisited(urlRow?.url);
             }
         }
@@ -473,10 +448,9 @@ async function run_2(memoryUsagePercentage, cpuUsagePercentage, usageMemory) {
 //           main();
 //           console.log("main");
 //      }
-
 // })
-
 // job.start()
+
 
 run_1(80, 80, 20);
 // run_2(80, 80, 20);
