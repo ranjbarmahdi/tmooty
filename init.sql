@@ -1,39 +1,34 @@
+CREATE TABLE courses (
+    id SERIAL PRIMARY KEY,
+    url TEXT UNIQUE NOT NULL,
+    title TEXT UNIQUE NOT NULL,
+    sku TEXT UNIQUE NOT NULL,
+    description TEXT,
+    headlines TEXT,
+    price TEXT,
+    discount TEXT,
+    number_of_students TEXT,
+    duration TEXT,
+    teacher_name TEXT,
+    course_type TEXT,
+    course_level TEXT,
+    certificate_type TEXT,
+    education_place TEXT,
+    CONSTRAINT unique_name_url UNIQUE (title, url)
+);
+
+
 CREATE TABLE public.problem (
-	id serial4 NOT NULL,
-	url text NULL,
-	CONSTRAINT problem_pkey PRIMARY KEY (id),
-	CONSTRAINT problem_url_key UNIQUE (url)
+    id SERIAL PRIMARY KEY,
+    url TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE public.unvisited (
-	id serial4 NOT NULL,
-	url text NOT NULL,
-	CONSTRAINT unvisited_pkey PRIMARY KEY (id),
-	CONSTRAINT unvisited_url_key UNIQUE (url)
+    id SERIAL PRIMARY KEY,
+    url TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE public.visited (
-	id serial4 NOT NULL,
-	url text NULL,
-	CONSTRAINT visited_pkey PRIMARY KEY (id),
-	CONSTRAINT visited_url_key UNIQUE (url)
+    id SERIAL PRIMARY KEY,
+    url TEXT NOT NULL UNIQUE
 );
-
-CREATE TABLE public.products (
-	id serial4 NOT NULL,
-	url text NOT NULL,
-	xpath text NULL,
-	specifications text NULL,
-	description text NULL,
-	price text NULL,
-	unitofmeasurement text NULL,
-	category text NULL,
-	brand text NULL,
-	sku text NOT NULL,
-	"name" text NOT NULL,
-	"row" int4 NULL,
-	CONSTRAINT products_pkey PRIMARY KEY (id),
-	CONSTRAINT products_sku_key UNIQUE (sku),
-	CONSTRAINT unique_name_url UNIQUE (name, url)
-);
-
