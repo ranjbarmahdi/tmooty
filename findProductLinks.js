@@ -1,5 +1,11 @@
 const cheerio = require('cheerio');
-const { getBrowser, getRandomElement, shuffleArray, delay } = require('./utils');
+const {
+    getBrowser,
+    getRandomElement,
+    shuffleArray,
+    delay,
+    convertToEnglishNumber,
+} = require('./utils');
 const db = require('./config.js');
 
 // ============================================ insertUrl
@@ -41,12 +47,10 @@ async function findAllMainLinks(page, initialUrl) {
         const $ = cheerio.load(html);
 
         // Getting All Main Urls In This Page
-        const mainLinks = $('notFound')
-            .map((i, a) => $(a).attr('href')?.trim())
-            .get();
+        const mainLinks = ['https://faradars.org/explore?limit=500'];
 
         // Push This Page Products Urls To allProductsLinks
-        allMainLinks.push(initialUrl);
+        allMainLinks.push(...mainLinks);
     } catch (error) {
         console.log('Error In findAllMainLinks function', error.message);
     }
@@ -106,17 +110,38 @@ async function findAllProductsLinks(page, allPagesLinks) {
             console.log('-------sleep 5 second');
             await delay(5000);
 
+            let html = await page.content();
+            let $ = cheerio.load(html);
+
+            const maxNumber = $('nav[aria-label="Pagination"] > span')
+                .map((i, e) => convertToEnglishNumber($(e).text().trim()))
+                .get()
+                .filter((e) => Number(e))
+                .map((i) => Number(i));
+
+            let maxPageNumber = 1;
+            if (maxNumber.length) {
+                maxPageNumber = Math.max(...maxNumber);
+            }
             let nextPageBtn;
             let c = 0;
             do {
                 c++;
                 console.log(c);
-                const html = await page.content();
-                const $ = cheerio.load(html);
+                html = await page.content();
+                $ = cheerio.load(html);
 
                 // Getting All Products Urls In This Page
-                const productsUrls = $('notFound')
-                    .map((i, e) => '' + $(e).attr('href'))
+                const productsUrls = $(
+                    '#faradars-main > div > main > div > div > div > div > div.w-full.flex.flex-wrap.pb-6 > div.px-4 > div.flex.w-full > div > div > div > a:first-child'
+                )
+                    .map((i, e) => {
+                        const url = $(e).attr('href');
+                        if (url?.includes('faradars.org')) {
+                            return url;
+                        }
+                        return 'https://faradars.org' + url;
+                    })
                     .get();
 
                 // insert prooduct links to unvisited
@@ -130,13 +155,13 @@ async function findAllProductsLinks(page, allPagesLinks) {
                     }
                 }
 
-                nextPageBtn = await page.$$('notFound');
-                if (nextPageBtn.length) {
+                nextPageBtn = await page.$$('nav[aria-label="Pagination"] > a:last-child');
+                if (c < maxPageNumber) {
                     let btn = nextPageBtn[0];
                     await btn.click();
                 }
-                await delay(5000);
-            } while (nextPageBtn.length);
+                await delay(10000);
+            } while (c < maxPageNumber);
         } catch (error) {
             console.log('Error In findAllProductsLinks function', error);
         }
@@ -146,7 +171,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
 // ============================================ Main
 async function main() {
     try {
-        const INITIAL_PAGE_URL = [''];
+        const INITIAL_PAGE_URL = ['https://faradars.org/'];
 
         // get random proxy
         const proxyList = [''];

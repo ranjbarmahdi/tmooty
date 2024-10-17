@@ -118,13 +118,8 @@ async function insertUrlToVisited(url) {
 
 // ============================================ findMinPrice
 async function getPrice(page, xpaths, currency) {
-    let price = Infinity;
-    let xpath = '';
+    const prices = [];
     try {
-        if (xpaths.length == 0) {
-            return [price, xpath];
-        }
-
         // Find Price
         for (const _xpath of xpaths) {
             try {
@@ -136,9 +131,8 @@ async function getPrice(page, xpaths, currency) {
                     );
                     priceText = convertToEnglishNumber(priceText);
                     let priceNumber = currency ? Number(priceText) : Number(priceText) * 10;
-                    if (priceNumber < price && priceNumber !== 0) {
-                        price = priceNumber;
-                        xpath = _xpath;
+                    if (priceNumber !== 0) {
+                        prices.push(priceNumber);
                     }
                 }
             } catch (error) {
@@ -148,7 +142,7 @@ async function getPrice(page, xpaths, currency) {
     } catch (error) {
         console.log('Error In getPrice :', error);
     } finally {
-        return [price, xpath];
+        return prices.sort((a, b) => b - a);
     }
 }
 
@@ -168,38 +162,29 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('ol > li:last-child').length ? $('ol > li:last-child').text().trim() : '';
 
         data['sku'] = uuid;
 
-        const specifications = {};
-        const liElements = $('notFound');
-        for (const li of liElements) {
-            const key = $(li).find('notFound').text()?.trim();
-            let value = $(li)
-                .find('notFound')
-                .map((i, e) => $(e).text()?.trim())
-                .get()
-                .join('\n');
-            if (!value) {
-                value = $(li)
-                    .find('notFound')
-                    .map((i, e) => $(e).text()?.trim())
-                    .get()
-                    .join('\n');
+        const sessionsElements = await page.$$(
+            '#preview > div > div.border-\\[\\#E4E4E7\\] > div > div:first-child:not(.border-b)'
+        );
+
+        if (sessionsElements) {
+            for (const element of sessionsElements) {
+                await element.click();
+                await delay(1500);
             }
-            specifications[key] = value;
         }
 
-        data['description'] = Object.keys(specifications)
-            .map((key) => `${key}:\n${specifications[key]}`)
-            .join('\n\n');
+        html = await page.content();
+        $ = await cheerio.load(html);
 
-        data['headlines'] = $('notFound')
+        data['headlines'] = $('#preview > div > div.border-\\[\\#E4E4E7\\] > div')
             .map((i, e) => {
-                const title = `${$(e).find('notFound').text()?.trim()}:`;
+                const title = `${$(e).find('> div:first-child > div').text()?.trim()} :`;
                 const ambients = $(e)
-                    .find('notFound')
+                    .find('> div:last-child > div > div > div > div > span:first-child')
                     .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
                     .get()
                     .join('\n');
@@ -208,32 +193,93 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
             .get()
             .join('\n\n');
 
-        data['price'] = '';
-        data['discount'] = '';
-        data['number_of_students'] = $('notFound').text()?.trim() || '';
+        if (!data['headlines']) {
+            let h5 = $('h5:contains("سرفصل")');
+
+            let ul = null;
+            if (h5.length) {
+                let firstUl = h5.nextAll('ul').eq(0);
+                let secondUl = h5.nextAll('ul').eq(1);
+
+                if (firstUl.length) {
+                    ul = firstUl;
+                } else if (secondUl.length) {
+                    ul = secondUl;
+                }
+            }
+
+            if (ul) {
+                data['headlines'] = $(ul)
+                    .find('>li')
+                    .map((i, e) => {
+                        const allText = $(e).text();
+                        const ulText = $(e).find('>ul').text();
+                        const text = allText.replace(ulText, '');
+                        const title = `${text?.trim()} :`;
+                        const ambients = $(e)
+                            .find('> ul > li')
+                            .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
+                            .get()
+                            .join('\n');
+                        return `${title}\n${ambients}`;
+                    })
+                    .get()
+                    .join('\n\n');
+            }
+        }
+
+        data['description'] = $('.course-html-content > div > p')
+            .map((i, e) => $(e).text()?.trim())
+            .get()
+            .join('\n');
+
+        data['number_of_students'] = '';
+        let strongElement = $('div > strong:contains("تعداد دانشجو")');
+        let parentDiv = strongElement.parent();
+        if (parentDiv.length) {
+            let firstDiv = parentDiv.nextAll('div').eq(0);
+            if (firstDiv.length) {
+                data['number_of_students'] =
+                    `${$(firstDiv).text()?.replace('نفر', '')?.trim()} نفر` || '';
+            }
+        }
+
         data['duration'] = $('notFound').text()?.trim() || '';
-        data['teacher_name'] = $('notFound').text()?.trim() || '';
-        data['course_type'] = $('notFound').text()?.trim() || '';
+        let strongElement2 = $('div > strong:contains("مدت زمان")');
+        let parentDiv2 = strongElement2.parent();
+        if (parentDiv2.length) {
+            let firstDiv = parentDiv2.nextAll('div').eq(0);
+            if (firstDiv.length) {
+                data['duration'] = `${$(firstDiv).text()?.trim()}` || '';
+            }
+        }
+
+        data['teacher_name'] = $('h6').text()?.trim() || '';
+        data['course_type'] = $('notFound').text()?.trim() || 'آنلاین';
         data['course_level'] = $('notFound').text()?.trim() || '';
         data['certificate_type'] = $('notFound').text()?.trim() || '';
         data['education_place'] = $('notFound').text()?.trim() || '';
 
         data['price'] = '';
-        data['xpath'] = '';
+        data['discount'] = '';
 
         // price_1
-        const xpaths = [];
-        const mainXpath = '';
+        const xpaths = [
+            '/html/body/div[1]/div/div[1]/main/div/div/div/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[2]/span',
+            '/html/body/div[1]/div/div[1]/main/div/div/div/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[3]/strong/span',
+            '/html/body/div[1]/div/div[1]/main/div/div/div/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[2]/s',
+        ];
         if (xpaths.length) {
             // Find Price
-            const [amount, xpath] = await getPrice(page, xpaths, currency);
+            const prices = await getPrice(page, xpaths, false);
 
-            // Check Price Is Finite
-            if (isFinite(amount)) {
-                data['price'] = amount;
-                data['xpath'] = xpath;
+            if (prices.length == 0) {
+                data['price'] = 'رایگان';
+            } else if (prices.length == 1) {
+                data['price'] = prices[0];
             } else {
-                data['xpath'] = mainXpath;
+                data['price'] = prices[0];
+                data['discount'] = prices[1];
             }
         }
 
@@ -357,7 +403,7 @@ async function main() {
 
             // Lunch Browser
             await delay(Math.random() * 4000);
-            browser = await getBrowser(randomProxy, true, false);
+            browser = await getBrowser(randomProxy, false, false);
             page = await browser.newPage();
             await page.setViewport({
                 width: 1920,
@@ -455,5 +501,5 @@ async function run_2(memoryUsagePercentage, cpuUsagePercentage, usageMemory) {
 // })
 // job.start()
 
-run_1(80, 80, 20);
-// run_2(80, 80, 20);
+// run_1(80, 80, 20);
+run_2(80, 80, 20);
