@@ -115,8 +115,8 @@ async function findAllProductsLinks(page, allPagesLinks) {
                 const $ = cheerio.load(html);
 
                 // Getting All Products Urls In This Page
-                const productsUrls = $('.plp-items > li > a')
-                    .map((i, e) => 'https://www.jabama.com' + $(e).attr('href'))
+                const productsUrls = $('a.title')
+                    .map((i, e) => $(e).attr('href'))
                     .get();
 
                 // insert prooduct links to unvisited
@@ -126,13 +126,11 @@ async function findAllProductsLinks(page, allPagesLinks) {
                         await insertUrl(url);
                         await delay(250);
                     } catch (error) {
-                        console.log('Error in findAllProductsLinks for loop:', error.message);
+                        console.log('Error in findAllProductsLinks for loop:', error);
                     }
                 }
 
-                nextPageBtn = await page.$$(
-                    'a.pagination-button--next:not([aria-disabled="true"])'
-                );
+                nextPageBtn = await page.$$('a.nextpostslink');
                 if (nextPageBtn.length) {
                     let btn = nextPageBtn[0];
                     await btn.click();
@@ -148,7 +146,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
 // ============================================ Main
 async function main() {
     try {
-        const INITIAL_PAGE_URL = [''];
+        const INITIAL_PAGE_URL = ['https://learning.emofid.com/course/'];
 
         // get random proxy
         const proxyList = [''];

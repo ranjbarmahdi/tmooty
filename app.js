@@ -58,7 +58,7 @@ async function removeUrl() {
 // ============================================ insertProduct
 async function insertCourse(queryValues) {
     const query = `
-          insert into products ("url", "title", "sku", "description", "headlines", "price", "discount", "number_of_students", "duration", "teacher_name", "course_type", "course_level", "certificate_type", "education_place")
+          insert into courses ("url", "title", "sku", "description", "headlines", "price", "discount", "number_of_students", "duration", "teacher_name", "course_type", "course_level", "certificate_type", "education_place")
           values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
      `;
 
@@ -158,55 +158,74 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         console.log(`======================== Start scraping : \n${courseURL}\n`);
         await page.goto(courseURL, { timeout: 180000 });
         await delay(5000);
-        
+
         let html = await page.content();
         let $ = await cheerio.load(html);
-        
+
         // Generate uuidv4
         const uuid = uuidv4().replace(/-/g, '');
-        
 
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('h2.course-title').length ? $('h2.course-title').text().trim() : '';
 
         data['sku'] = uuid;
 
-        data['description'] = ''
-
-        data['headlines'] = $(
-            '.accommodation-pdp-specifications__container > .accommodation-pdp-specification > .accommodation-pdp-specification-content'
-        )
-            .map((i, e) => {
-                const title = $(e)
-                    .find('.accommodation-pdp-specification-content__title')
-                    .text()
-                    ?.trim();
-                const ambients = $(e)
-                    .find(
-                        '.accommodation-pdp-specification-description > .accommodation-pdp-specification-description__item'
-                    )
+        const specifications = {};
+        const liElements = $(
+            'body > div.c-single-video > section.c-video-text-boxes > div > div.wrapper.r > div:nth-child(1) > .text-box'
+        );
+        for (const li of liElements) {
+            const key = $(li).find('.title > h2').text()?.trim();
+            let value = $(li)
+                .find('.content')
+                .map((i, e) => $(e).text()?.trim())
+                .get()
+                .join('\n');
+            if (!value) {
+                value = $(li)
+                    .find('.items-list > li')
                     .map((i, e) => $(e).text()?.trim())
                     .get()
                     .join('\n');
-                return `${title}:\n${ambients}`;
+            }
+            specifications[key] = value;
+        }
+
+        data['description'] = Object.keys(specifications)
+            .map((key) => `${key}:\n${specifications[key]}`)
+            .join('\n\n');
+
+        data['headlines'] = $('.season-item.has-children')
+            .map((i, e) => {
+                const title = `${$(e).find('.header > .top').text()?.trim()} : ${$(e)
+                    .find('.header > .bottom')
+                    .text()
+                    ?.trim()}`;
+                const ambients = $(e)
+                    .find('.episodes-list > li')
+                    .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
+                    .get()
+                    .join('\n');
+                return `${title}\n${ambients}`;
             })
             .get()
             .join('\n\n');
 
-        data['price'] = ''
-        data['discount'] = ''
-        data['number_of_students'] = $("notFound").text()?.trim() || "";
-        data['duration'] = $("notFound").text()?.trim() || "";
-        data['teacher_name'] = $("notFound").text()?.trim() || "";
-        data['course_type'] = $("notFound").text()?.trim() || "";
-        data['course_level'] = $("notFound").text()?.trim() || "";
-        data['certificate_type'] = $("notFound").text()?.trim() || "";
-        data['education_place'] = $("notFound").text()?.trim() || "";
+        data['price'] = 'رایگان';
+        data['discount'] = '';
+        data['number_of_students'] = $('notFound').text()?.trim() || '';
+        data['duration'] = $('notFound').text()?.trim() || '';
+
+        data['teacher_name'] = $('.author-name').text()?.trim() || '';
+        data['course_type'] = $('notFound').text()?.trim() || 'آنلاین';
+        data['course_level'] = $('notFound').text()?.trim() || '';
+        data['certificate_type'] = $('notFound').text()?.trim() || '';
+        data['education_place'] = $('notFound').text()?.trim() || '';
 
         data['price'] = '';
-        data['xpath'] = '';
+        data['xpath'];
 
         // price_1
         const xpaths = [];
@@ -234,10 +253,6 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         //      data["price"] = $('notFound').first().text().replace(/[^\u06F0-\u06F90-9]/g, "");
         //      data["xpath"] = '';
         // }
-
-        // specification, specificationString
-
-
 
         // Download Images
         const image_xpaths = [];
@@ -268,7 +283,6 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         imageUrls = [...new Set(imageUrls)];
         await downloadImages(imageUrls, imagesDIR, uuid);
 
-
         // download pdfs
         let pdfUrls = $('NotFound')
             .map((i, e) => $(e).attr('href'))
@@ -294,7 +308,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const courseDataObject = {
             url: data['url'],
             title: data['title'],
-            sku: data['sku'] ,
+            sku: data['sku'],
             description: data['description'],
             headlines: data['headlines'],
             price: data['price'],
@@ -305,11 +319,10 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
             course_type: data['course_type'],
             course_level: data['course_level'],
             certificate_type: data['certificate_type'],
-            education_place: data['education_place']
+            education_place: data['education_place'],
         };
 
         return courseDataObject;
-        
     } catch (error) {
         console.log('Error In scrapeCourse in page.goto', error);
         await insertUrlToProblem(courseURL);
@@ -355,12 +368,7 @@ async function main() {
                 height: 1080,
             });
 
-            const courseInfo = await scrapeCourse(
-                page,
-                urlRow.url,
-                IMAGES_DIR,
-                DOCUMENTS_DIR
-            );
+            const courseInfo = await scrapeCourse(page, urlRow.url, IMAGES_DIR, DOCUMENTS_DIR);
 
             const insertQueryInput = [
                 courseInfo.url,
@@ -376,7 +384,7 @@ async function main() {
                 courseInfo.course_type,
                 courseInfo.course_level,
                 courseInfo.certificate_type,
-                courseInfo.education_place
+                courseInfo.education_place,
             ];
 
             // if exists courseInfo insert it to courses
@@ -451,6 +459,5 @@ async function run_2(memoryUsagePercentage, cpuUsagePercentage, usageMemory) {
 // })
 // job.start()
 
-
-run_1(80, 80, 20);
-// run_2(80, 80, 20);
+// run_1(80, 80, 20);
+run_2(80, 80, 20);
