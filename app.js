@@ -118,13 +118,8 @@ async function insertUrlToVisited(url) {
 
 // ============================================ findMinPrice
 async function getPrice(page, xpaths, currency) {
-    let price = Infinity;
-    let xpath = '';
+    const prices = [];
     try {
-        if (xpaths.length == 0) {
-            return [price, xpath];
-        }
-
         // Find Price
         for (const _xpath of xpaths) {
             try {
@@ -136,9 +131,8 @@ async function getPrice(page, xpaths, currency) {
                     );
                     priceText = convertToEnglishNumber(priceText);
                     let priceNumber = currency ? Number(priceText) : Number(priceText) * 10;
-                    if (priceNumber < price && priceNumber !== 0) {
-                        price = priceNumber;
-                        xpath = _xpath;
+                    if (priceNumber !== 0) {
+                        prices.push(priceNumber);
                     }
                 }
             } catch (error) {
@@ -148,7 +142,7 @@ async function getPrice(page, xpaths, currency) {
     } catch (error) {
         console.log('Error In getPrice :', error);
     } finally {
-        return [price, xpath];
+        return prices.sort((a, b) => b - a);
     }
 }
 
@@ -226,14 +220,15 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const mainXpath = '';
         if (xpaths.length) {
             // Find Price
-            const [amount, xpath] = await getPrice(page, xpaths, currency);
+            const prices = await getPrice(page, xpaths, false);
 
-            // Check Price Is Finite
-            if (isFinite(amount)) {
-                data['price'] = amount;
-                data['xpath'] = xpath;
+            if (prices.length == 0) {
+                // data['price'] = 'رایگان';
+            } else if (prices.length == 1) {
+                data['price'] = prices[0];
             } else {
-                data['xpath'] = mainXpath;
+                data['price'] = prices[0];
+                data['discount'] = prices[1];
             }
         }
 
