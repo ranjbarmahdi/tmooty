@@ -115,8 +115,8 @@ async function findAllProductsLinks(page, allPagesLinks) {
                 const $ = cheerio.load(html);
 
                 // Getting All Products Urls In This Page
-                const productsUrls = $('notFound')
-                    .map((i, e) => '' + $(e).attr('href'))
+                const productsUrls = $('.product-item-content > a')
+                    .map((i, e) => 'https://academyit.net' + $(e).attr('href'))
                     .get();
 
                 // insert prooduct links to unvisited
@@ -130,7 +130,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
                     }
                 }
 
-                nextPageBtn = await page.$$('notFound');
+                nextPageBtn = await page.$$('.page-item.pagination-next-nav > a');
                 if (nextPageBtn.length) {
                     let btn = nextPageBtn[0];
                     await btn.click();
@@ -146,7 +146,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
 // ============================================ Main
 async function main() {
     try {
-        const INITIAL_PAGE_URL = [''];
+        const INITIAL_PAGE_URL = ['https://academyit.net/products/courses'];
 
         // get random proxy
         const proxyList = [''];
