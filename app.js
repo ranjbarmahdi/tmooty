@@ -162,7 +162,9 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('.breadcrumb-section > a:last-child').length
+            ? $('.breadcrumb-section > a:last-child').text().trim()
+            : '';
 
         data['sku'] = uuid;
 
@@ -205,7 +207,17 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         data['price'] = '';
         data['discount'] = '';
         data['number_of_students'] = $('notFound').text()?.trim() || '';
-        data['duration'] = $('notFound').text()?.trim() || '';
+
+        data['duration'] = '';
+        let b1 = $('b:contains("مدت زمان:")');
+        let b2 = null;
+        if (b1.length) {
+            let firstB = b1.nextAll('b').eq(0);
+            if (firstB.length) {
+                b2 = firstB;
+                data['duration'] = $(b2).text()?.trim() || '';
+            }
+        }
         data['teacher_name'] = $('span.text-secondary-emphasis').text()?.trim() || '';
         data['course_type'] = $('notFound').text()?.trim() || '';
         data['course_level'] = $('notFound').text()?.trim() || '';
@@ -225,7 +237,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
             const prices = await getPrice(page, xpaths, false);
 
             if (prices.length == 0) {
-                // ---------
+                // data['price'] = 'رایگان';
             } else if (prices.length == 1) {
                 data['price'] = prices[0];
             } else {
