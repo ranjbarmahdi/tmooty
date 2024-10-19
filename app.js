@@ -218,11 +218,13 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         data['certificate_type'] = $('notFound').text()?.trim() || '';
         data['education_place'] = $('notFound').text()?.trim() || '';
 
-        data['price'] = '';
-        data['xpath'] = '';
-
         // price_1
-        const xpaths = [];
+        const xpaths = [
+            '/html/body/div[1]/section/div/aside/section/div[1]/h5',
+            '/html/body/div[1]/section/div/aside/section/div[1]/span',
+            '/html/body/div[1]/section/div/aside/section/div[7]/h5',
+            '/html/body/div[1]/section/div/aside/section/div[7]/span',
+        ];
         const mainXpath = '';
         if (xpaths.length) {
             // Find Price
