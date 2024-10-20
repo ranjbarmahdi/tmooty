@@ -41,12 +41,12 @@ async function findAllMainLinks(page, initialUrl) {
         const $ = cheerio.load(html);
 
         // Getting All Main Urls In This Page
-        const mainLinks = $('notFound')
-            .map((i, a) => $(a).attr('href')?.trim())
+        const mainLinks = $('.scroll-bar > li > a')
+            .map((i, a) => 'https://maktabkhooneh.org' + $(a).attr('href')?.trim())
             .get();
 
         // Push This Page Products Urls To allProductsLinks
-        allMainLinks.push(initialUrl);
+        allMainLinks.push(...mainLinks);
     } catch (error) {
         console.log('Error In findAllMainLinks function', error.message);
     }
@@ -115,8 +115,8 @@ async function findAllProductsLinks(page, allPagesLinks) {
                 const $ = cheerio.load(html);
 
                 // Getting All Products Urls In This Page
-                const productsUrls = $('notFound')
-                    .map((i, e) => '' + $(e).attr('href'))
+                const productsUrls = $('.search-course-card')
+                    .map((i, e) => 'https://maktabkhooneh.org' + $(e).attr('href'))
                     .get();
 
                 // insert prooduct links to unvisited
@@ -130,12 +130,12 @@ async function findAllProductsLinks(page, allPagesLinks) {
                     }
                 }
 
-                nextPageBtn = await page.$$('notFound');
+                nextPageBtn = await page.$$('.base-paginator__caret-left');
                 if (nextPageBtn.length) {
                     let btn = nextPageBtn[0];
                     await btn.click();
                 }
-                await delay(5000);
+                await delay(10000);
             } while (nextPageBtn.length);
         } catch (error) {
             console.log('Error In findAllProductsLinks function', error);
@@ -146,7 +146,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
 // ============================================ Main
 async function main() {
     try {
-        const INITIAL_PAGE_URL = [''];
+        const INITIAL_PAGE_URL = ['https://maktabkhooneh.org/'];
 
         // get random proxy
         const proxyList = [''];
@@ -156,8 +156,8 @@ async function main() {
         const browser = await getBrowser(randomProxy, false, false);
         const page = await browser.newPage();
         await page.setViewport({
-            width: 1920,
-            height: 1080,
+            width: 1440,
+            height: 810,
         });
 
         for (const u of INITIAL_PAGE_URL) {
