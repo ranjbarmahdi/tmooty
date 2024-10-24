@@ -162,32 +162,13 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('h1.product_title:first').length
+            ? $('h1.product_title:first').text().trim()
+            : '';
 
         data['sku'] = uuid;
 
-        const specifications = {};
-        const liElements = $('notFound');
-        for (const li of liElements) {
-            const key = $(li).find('notFound').text()?.trim();
-            let value = $(li)
-                .find('notFound')
-                .map((i, e) => $(e).text()?.trim())
-                .get()
-                .join('\n');
-            if (!value) {
-                value = $(li)
-                    .find('notFound')
-                    .map((i, e) => $(e).text()?.trim())
-                    .get()
-                    .join('\n');
-            }
-            specifications[key] = value;
-        }
-
-        data['description'] = Object.keys(specifications)
-            .map((key) => `${key}:\n${specifications[key]}`)
-            .join('\n\n');
+        data['description'] = $('.woocommerce-product-details__short-description').text().trim();
 
         data['headlines'] = $('notFound')
             .map((i, e) => {
@@ -205,19 +186,20 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         data['price'] = '';
         data['discount'] = '';
         data['number_of_students'] = $('notFound').text()?.trim() || '';
-        data['duration'] = $('notFound').text()?.trim() || '';
+        data['duration'] =
+            $('.elementor-element-8ffdd31.elementor-widget.elementor-widget-heading > div > h2')
+                .text()
+                ?.trim() || '';
         data['teacher_name'] = $('notFound').text()?.trim() || '';
-        data['course_type'] = $('notFound').text()?.trim() || '';
-        data['course_level'] = $('notFound').text()?.trim() || '';
+        data['course_type'] = $('notFound').text()?.trim() || 'آفلاین';
+        data['course_level'] =
+            $('.elementor-element-595808d.elementor-widget-heading > div > h2').text()?.trim() ||
+            '';
         data['certificate_type'] = $('notFound').text()?.trim() || '';
         data['education_place'] = $('notFound').text()?.trim() || '';
 
-        data['price'] = '';
-        data['xpath'] = '';
-
         // price_1
-        const xpaths = [];
-        const mainXpath = '';
+        const xpaths = ['/html/body/div[3]/div[2]/div/div[2]/div/div[2]/div/p/span/bdi/text()'];
         if (xpaths.length) {
             // Find Price
             const prices = await getPrice(page, xpaths, false);
@@ -352,7 +334,7 @@ async function main() {
 
             // Lunch Browser
             await delay(Math.random() * 4000);
-            browser = await getBrowser(randomProxy, true, false);
+            browser = await getBrowser(randomProxy, false, false);
             page = await browser.newPage();
             await page.setViewport({
                 width: 1920,
@@ -450,5 +432,5 @@ async function run_2(memoryUsagePercentage, cpuUsagePercentage, usageMemory) {
 // })
 // job.start()
 
-run_1(80, 80, 20);
-// run_2(80, 80, 20);
+// run_1(80, 80, 20);
+run_2(80, 80, 20);

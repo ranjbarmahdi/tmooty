@@ -115,7 +115,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
                 const $ = cheerio.load(html);
 
                 // Getting All Products Urls In This Page
-                const productsUrls = $('notFound')
+                const productsUrls = $('h1.product_title > a')
                     .map((i, e) => '' + $(e).attr('href'))
                     .get();
 
@@ -146,7 +146,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
 // ============================================ Main
 async function main() {
     try {
-        const INITIAL_PAGE_URL = [''];
+        const INITIAL_PAGE_URL = ['https://medadsabz.com/courses/'];
 
         // get random proxy
         const proxyList = [''];
