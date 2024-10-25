@@ -162,7 +162,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('h1').length ? $('h1').text().trim() : '';
 
         data['sku'] = uuid;
 
@@ -185,9 +185,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
             specifications[key] = value;
         }
 
-        data['description'] = Object.keys(specifications)
-            .map((key) => `${key}:\n${specifications[key]}`)
-            .join('\n\n');
+        data['description'] = $('.wpb-content-wrapper').text().trim();
 
         data['headlines'] = $('notFound')
             .map((i, e) => {
@@ -205,25 +203,48 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         data['price'] = '';
         data['discount'] = '';
         data['number_of_students'] = $('notFound').text()?.trim() || '';
-        data['duration'] = $('notFound').text()?.trim() || '';
-        data['teacher_name'] = $('notFound').text()?.trim() || '';
-        data['course_type'] = $('notFound').text()?.trim() || '';
-        data['course_level'] = $('notFound').text()?.trim() || '';
-        data['certificate_type'] = $('notFound').text()?.trim() || '';
+        data['duration'] =
+            $('.meta-info-unit > .value')
+                .filter((i, e) => $(e).text().includes('ساعت') || $(e).text().includes('دقیقه'))
+                .first()
+                .text()
+                ?.trim() || '';
+        data['teacher_name'] = $('.course-teacher-details a.btn-link').text()?.trim() || '';
+        data['course_type'] =
+            $('.meta-info-unit > .value')
+                .filter((i, e) => $(e).text().includes('نوع'))
+                .first()
+                .text()
+                ?.split(':')[1]
+                ?.trim() || '';
+        data['course_level'] =
+            $('.meta-info-unit > .value')
+                .filter((i, e) => $(e).text().includes('evel'))
+                .first()
+                .text()
+                ?.split(':')[1]
+                ?.trim() || '';
+        data['certificate_type'] =
+            $('.meta-info-unit > .value')
+                .filter((i, e) => $(e).text().includes('گواهینامه'))
+                .first()
+                .text()
+                ?.trim() || '';
         data['education_place'] = $('notFound').text()?.trim() || '';
 
-        data['price'] = '';
-        data['xpath'] = '';
-
         // price_1
-        const xpaths = [];
+        const xpaths = [
+            '/html/body/div[6]/div[3]/div/div[2]/div/div[2]/div/div[1]/div[1]/p/span/text()',
+            '/html/body/div[6]/div[2]/div/div[2]/div/div[2]/div/div[1]/div[1]/p/del/span/text()',
+            '/html/body/div[6]/div[2]/div/div[2]/div/div[2]/div/div[1]/div[1]/p/ins/span/text()',
+        ];
         const mainXpath = '';
         if (xpaths.length) {
             // Find Price
             const prices = await getPrice(page, xpaths, false);
 
             if (prices.length == 0) {
-                // data['price'] = 'رایگان';
+                data['price'] = 'رایگان';
             } else if (prices.length == 1) {
                 data['price'] = prices[0];
             } else {
