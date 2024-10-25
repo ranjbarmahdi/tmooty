@@ -41,12 +41,14 @@ async function findAllMainLinks(page, initialUrl) {
         const $ = cheerio.load(html);
 
         // Getting All Main Urls In This Page
-        const mainLinks = $('notFound')
-            .map((i, a) => $(a).attr('href')?.trim())
+        const mainLinks = $(
+            '#nav-menu-bottom-row > div > div.row.top-menu > div > div > div > div.u-menu-level-1 > ul > li > a'
+        )
+            .map((i, a) => 'https://www.daneshjooyar.com' + $(a).attr('href')?.trim())
             .get();
 
         // Push This Page Products Urls To allProductsLinks
-        allMainLinks.push(initialUrl);
+        allMainLinks.push(...mainLinks);
     } catch (error) {
         console.log('Error In findAllMainLinks function', error.message);
     }
@@ -115,7 +117,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
                 const $ = cheerio.load(html);
 
                 // Getting All Products Urls In This Page
-                const productsUrls = $('notFound')
+                const productsUrls = $('.card-list-content > h2 > a')
                     .map((i, e) => '' + $(e).attr('href'))
                     .get();
 
@@ -130,7 +132,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
                     }
                 }
 
-                nextPageBtn = await page.$$('notFound');
+                nextPageBtn = await page.$$('a.next.page-numbers');
                 if (nextPageBtn.length) {
                     let btn = nextPageBtn[0];
                     await btn.click();
@@ -146,7 +148,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
 // ============================================ Main
 async function main() {
     try {
-        const INITIAL_PAGE_URL = [''];
+        const INITIAL_PAGE_URL = ['https://www.daneshjooyar.com/'];
 
         // get random proxy
         const proxyList = [''];
@@ -156,8 +158,8 @@ async function main() {
         const browser = await getBrowser(randomProxy, false, false);
         const page = await browser.newPage();
         await page.setViewport({
-            width: 1920,
-            height: 1080,
+            width: 1420,
+            height: 640,
         });
 
         for (const u of INITIAL_PAGE_URL) {

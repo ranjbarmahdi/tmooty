@@ -162,38 +162,20 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('#special-title').length ? $('#special-title').text().trim() : '';
 
         data['sku'] = uuid;
 
-        const specifications = {};
-        const liElements = $('notFound');
-        for (const li of liElements) {
-            const key = $(li).find('notFound').text()?.trim();
-            let value = $(li)
-                .find('notFound')
-                .map((i, e) => $(e).text()?.trim())
-                .get()
-                .join('\n');
-            if (!value) {
-                value = $(li)
-                    .find('notFound')
-                    .map((i, e) => $(e).text()?.trim())
-                    .get()
-                    .join('\n');
-            }
-            specifications[key] = value;
-        }
+        data['description'] = $('.course-excerpt > p')
+            .map((i, e) => $(e).text()?.trim())
+            .get()
+            .join('\n');
 
-        data['description'] = Object.keys(specifications)
-            .map((key) => `${key}:\n${specifications[key]}`)
-            .join('\n\n');
-
-        data['headlines'] = $('notFound')
+        data['headlines'] = $('.chapters-container > div')
             .map((i, e) => {
-                const title = `${$(e).find('notFound').text()?.trim()}:`;
+                const title = `${$(e).find('.chapter-head > .chapter-title').text()?.trim()}:`;
                 const ambients = $(e)
-                    .find('notFound')
+                    .find('.chapter-items > div > p')
                     .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
                     .get()
                     .join('\n');
@@ -204,19 +186,22 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
 
         data['price'] = '';
         data['discount'] = '';
-        data['number_of_students'] = $('notFound').text()?.trim() || '';
-        data['duration'] = $('notFound').text()?.trim() || '';
-        data['teacher_name'] = $('notFound').text()?.trim() || '';
+        data['number_of_students'] = $('i.ic-people').next('span').text()?.trim() || '';
+        data['duration'] = $('i.ic-clock-square').next('span').text()?.trim() || '';
+        data['teacher_name'] =
+            $('.teacher-resume > ul > li:contains("مدرس") > span > a').text()?.trim() || '';
         data['course_type'] = $('notFound').text()?.trim() || '';
         data['course_level'] = $('notFound').text()?.trim() || '';
-        data['certificate_type'] = $('notFound').text()?.trim() || '';
+        data['certificate_type'] = $('i.ic-award').next('span').text()?.trim() || '';
         data['education_place'] = $('notFound').text()?.trim() || '';
 
-        data['price'] = '';
-        data['xpath'] = '';
-
         // price_1
-        const xpaths = [];
+        const xpaths = [
+            '/html/body/main/div[3]/div/aside/div/div[1]/div[1]/div[2]/ins/text()',
+            '/html/body/main/div[3]/div/aside/div/div[1]/div[1]/div[1]/del/text()',
+            '/html/body/main/div[3]/div/aside/div[2]/div/div[3]/div[2]/ins/text()',
+            '/html/body/main/div[3]/div/aside/div[2]/div/div[3]/div[1]/del/text()',
+        ];
         const mainXpath = '';
         if (xpaths.length) {
             // Find Price
