@@ -162,38 +162,20 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('h1').length ? $('h1').text().trim() : '';
 
         data['sku'] = uuid;
 
-        const specifications = {};
-        const liElements = $('notFound');
-        for (const li of liElements) {
-            const key = $(li).find('notFound').text()?.trim();
-            let value = $(li)
-                .find('notFound')
-                .map((i, e) => $(e).text()?.trim())
-                .get()
-                .join('\n');
-            if (!value) {
-                value = $(li)
-                    .find('notFound')
-                    .map((i, e) => $(e).text()?.trim())
-                    .get()
-                    .join('\n');
-            }
-            specifications[key] = value;
-        }
+        data['description'] = $('#aboutCourse article.about-course > .course-box-body').html();
 
-        data['description'] = Object.keys(specifications)
-            .map((key) => `${key}:\n${specifications[key]}`)
-            .join('\n\n');
-
-        data['headlines'] = $('notFound')
+        data['headlines'] = $('#sessionCourse .all-activity > div')
             .map((i, e) => {
-                const title = `${$(e).find('notFound').text()?.trim()}:`;
-                const ambients = $(e)
-                    .find('notFound')
+                const title = `${$(e).prev('button').find('>h3').text().trim()}:`;
+                let x = $(e).find('.session-item > div > div > div:first-child > span');
+                if (!x.length) {
+                    x = $(e).find('.session-item > div > a > div > div:first-child > span');
+                }
+                const ambients = $(x)
                     .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
                     .get()
                     .join('\n');
@@ -204,9 +186,10 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
 
         data['price'] = '';
         data['discount'] = '';
-        data['number_of_students'] = $('notFound').text()?.trim() || '';
-        data['duration'] = $('notFound').text()?.trim() || '';
-        data['teacher_name'] = $('notFound').text()?.trim() || '';
+        data['number_of_students'] =
+            $('.course-info-item:contains(فراگیر) > .value').text()?.trim() || '';
+        data['duration'] = $('.course-info-item:contains(مدت) > .value').text()?.trim() || '';
+        data['teacher_name'] = $('span.teacher-name').text()?.trim() || '';
         data['course_type'] = $('notFound').text()?.trim() || '';
         data['course_level'] = $('notFound').text()?.trim() || '';
         data['certificate_type'] = $('notFound').text()?.trim() || '';
@@ -216,7 +199,9 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         data['xpath'] = '';
 
         // price_1
-        const xpaths = [];
+        const xpaths = [
+            '/html/body/div/div[4]/div/div/div[2]/div/div[1]/div[6]/div/div[1]/span/span[1]/text()',
+        ];
         const mainXpath = '';
         if (xpaths.length) {
             // Find Price
