@@ -162,7 +162,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('h1').length ? $('h1').text().trim() : '';
 
         data['sku'] = uuid;
 
@@ -185,38 +185,35 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
             specifications[key] = value;
         }
 
-        data['description'] = Object.keys(specifications)
-            .map((key) => `${key}:\n${specifications[key]}`)
-            .join('\n\n');
-
-        data['headlines'] = $('notFound')
-            .map((i, e) => {
-                const title = `${$(e).find('notFound').text()?.trim()}:`;
-                const ambients = $(e)
-                    .find('notFound')
-                    .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
-                    .get()
-                    .join('\n');
-                return `${title}\n${ambients}`;
-            })
-            .get()
-            .join('\n\n');
+        data['description'] = $(
+            'div.row.has-sidebar.sidebar-right > div > div.product-single-content > div.elementor > section.elementor-section.elementor-top-section.elementor-element.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default > div'
+        )
+            .first()
+            .html();
 
         data['price'] = '';
         data['discount'] = '';
         data['number_of_students'] = $('notFound').text()?.trim() || '';
-        data['duration'] = $('notFound').text()?.trim() || '';
-        data['teacher_name'] = $('notFound').text()?.trim() || '';
-        data['course_type'] = $('notFound').text()?.trim() || '';
+        data['duration'] =
+            $('.product-card:contains(مدت) > div.value > span:last-child').text()?.trim() || '';
+        data['teacher_name'] =
+            $('.product-card:contains(مدرس) > div.value > span:last-child').text()?.trim() || '';
+        data['course_type'] =
+            $('.product-category > .posted_in > a:contains(دوره)').text()?.trim() || '';
         data['course_level'] = $('notFound').text()?.trim() || '';
-        data['certificate_type'] = $('notFound').text()?.trim() || '';
+        data['certificate_type'] =
+            $('.product-card:contains(مدرک) > div.value > span:last-child').text()?.trim() || '';
         data['education_place'] = $('notFound').text()?.trim() || '';
 
         data['price'] = '';
         data['xpath'] = '';
 
         // price_1
-        const xpaths = [];
+        const xpaths = [
+            '/html/body/div[6]/div/div[2]/div[2]/div[2]/div/div[1]/div/p/span/text()',
+            '/html/body/div[6]/div/div[2]/div[2]/div[2]/div/div[2]/div/p/ins/span/text()',
+            '/html/body/div[6]/div/div[2]/div[2]/div[2]/div/div[2]/div/p/span[1]/text()',
+        ];
         const mainXpath = '';
         if (xpaths.length) {
             // Find Price
@@ -246,7 +243,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         // specification, specificationString
 
         // Download Images
-        const image_xpaths = [];
+        const image_xpaths = ['//div[contains(@class, "course-single-gallery")]//img'];
         let imageUrls = await Promise.all(
             image_xpaths.map(async (_xpath) => {
                 try {
