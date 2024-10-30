@@ -166,6 +166,18 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
 
         data['sku'] = uuid;
 
+        const sessionsElements = await page.$$('#sections > div');
+
+        if (sessionsElements) {
+            for (const element of sessionsElements) {
+                await element.click();
+                await delay(1500);
+            }
+        }
+
+        html = await page.content();
+        $ = await cheerio.load(html);
+
         const specifications = {};
         const liElements = $('notFound');
         for (const li of liElements) {
@@ -187,11 +199,11 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
 
         data['description'] = $('#content > div > div').html();
 
-        data['headlines'] = $('notFound')
+        data['headlines'] = $('#sections > div')
             .map((i, e) => {
-                const title = `${$(e).find('notFound').text()?.trim()}:`;
+                const title = `${$(e).find('.head  > p').text()?.trim()}:`;
                 const ambients = $(e)
-                    .find('notFound')
+                    .find('.content > .episodes > ul > li > p')
                     .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
                     .get()
                     .join('\n');
@@ -203,8 +215,18 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         data['price'] = '';
         data['discount'] = '';
         data['number_of_students'] = $('notFound').text()?.trim() || '';
-        data['duration'] = $('notFound').text()?.trim() || '';
-        data['teacher_name'] = $('notFound').text()?.trim() || '';
+        data['duration'] =
+            $(
+                '#__nuxt > div > div:nth-child(2) > main > div > div.course-banner.bg-blue > div > div > div.info.text-white.flex.flex-col > div.flex.justify-between.gap-2.py-2.flex-wrap > div:nth-child(2) > span'
+            )
+                .text()
+                ?.trim() || '';
+        data['teacher_name'] =
+            $(
+                '#__nuxt > div > div:nth-child(2) > main > div > div.course-banner.bg-blue > div > div > div.text-white > div.flex.justify-between.gap-2.py-2.flex-wrap > div:nth-child(3) > a'
+            )
+                .text()
+                ?.trim() || '';
         data['course_type'] = $('notFound').text()?.trim() || '';
         data['course_level'] = $('notFound').text()?.trim() || '';
         data['certificate_type'] = $('notFound').text()?.trim() || '';
@@ -214,7 +236,10 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         data['xpath'] = '';
 
         // price_1
-        const xpaths = [];
+        const xpaths = [
+            '/html/body/div[1]/div/div[2]/main/div/div[1]/div/div/div[1]/div[3]/p/label/del/text()',
+            '/html/body/div[1]/div/div[2]/main/div/div[1]/div/div/div[1]/div[3]/p/label/text()',
+        ];
         const mainXpath = '';
         if (xpaths.length) {
             // Find Price
