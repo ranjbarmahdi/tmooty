@@ -71,14 +71,12 @@ async function findAllPagesLinks(page, mainLinks) {
             const $ = cheerio.load(html);
 
             // find last page number and preduce other pages urls
-            const paginationElement = $('notFound');
-            console.log('Pagination Element : ', paginationElement.length);
+            const paginationElement = $('.page-item:last-child');
             if (paginationElement.length) {
-                let lsatPageNumber = $('notFound')?.last().text()?.trim();
-                console.log('Last Page Number : ', lsatPageNumber);
+                let lsatPageNumber = $('.page-item:last-child')?.last().text()?.trim();
                 lsatPageNumber = Number(lsatPageNumber);
                 for (let j = 1; j <= lsatPageNumber; j++) {
-                    const newUrl = url + `?page=${j}`;
+                    const newUrl = 'https://www.mongard.ir/courses/' + `?page=${j}`;
                     allPagesLinks.push(newUrl);
                 }
             } else {
@@ -115,8 +113,8 @@ async function findAllProductsLinks(page, allPagesLinks) {
                 const $ = cheerio.load(html);
 
                 // Getting All Products Urls In This Page
-                const productsUrls = $('notFound')
-                    .map((i, e) => '' + $(e).attr('href'))
+                const productsUrls = $('a.d-block')
+                    .map((i, e) => 'https://www.mongard.ir' + $(e).attr('href'))
                     .get();
 
                 // insert prooduct links to unvisited
@@ -146,7 +144,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
 // ============================================ Main
 async function main() {
     try {
-        const INITIAL_PAGE_URL = [''];
+        const INITIAL_PAGE_URL = ['https://www.mongard.ir/courses/?page=1'];
 
         // get random proxy
         const proxyList = [''];
@@ -162,8 +160,9 @@ async function main() {
 
         for (const u of INITIAL_PAGE_URL) {
             const mainLinks = await findAllMainLinks(page, u);
-            // const AllPagesLinks = await findAllPagesLinks(page, mainLinks);
-            await findAllProductsLinks(page, mainLinks);
+            const AllPagesLinks = await findAllPagesLinks(page, mainLinks);
+            console.log(AllPagesLinks);
+            await findAllProductsLinks(page, AllPagesLinks);
         }
 
         // Close page and browser
