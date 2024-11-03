@@ -115,9 +115,78 @@ async function findAllProductsLinks(page, allPagesLinks) {
                 const $ = cheerio.load(html);
 
                 // Getting All Products Urls In This Page
-                const productsUrls = $('notFound')
-                    .map((i, e) => '' + $(e).attr('href'))
-                    .get();
+                const productsUrls = [
+                    'https://sabzlearn.ir/course/php/',
+                    'https://sabzlearn.ir/course/electronjs/',
+                    'https://sabzlearn.ir/course/redis/',
+                    'https://sabzlearn.ir/course/nestjs/',
+                    'https://sabzlearn.ir/course/telegram-bot-nodejs/',
+                    'https://sabzlearn.ir/course/fastify/',
+                    'https://sabzlearn.ir/course/zero-api/',
+                    'https://sabzlearn.ir/course/php-api-dev/',
+                    'https://sabzlearn.ir/course/laravel-reverb/',
+                    'https://sabzlearn.ir/course/webpack/',
+                    'https://sabzlearn.ir/course/docker/',
+                    'https://sabzlearn.ir/course/bad-usb/',
+                    'https://sabzlearn.ir/course/0k-hacker/',
+                    'https://sabzlearn.ir/course/websocket/',
+                    'https://sabzlearn.ir/course/graphql/',
+                    'https://sabzlearn.ir/course/javascript-library-development/',
+                    'https://sabzlearn.ir/course/browser-extension-with-js/',
+                    'https://sabzlearn.ir/course/master-freelance/',
+                    'https://sabzlearn.ir/course/livewire/',
+                    'https://sabzlearn.ir/course/dashboard-with-css-js/',
+                    'https://sabzlearn.ir/course/telegram-bot-php/',
+                    'https://sabzlearn.ir/course/algorithm/',
+                    'https://sabzlearn.ir/course/applied-projects-with-php/',
+                    'https://sabzlearn.ir/course/deploy-for-js/',
+                    'https://sabzlearn.ir/course/clean-code-for-js/',
+                    'https://sabzlearn.ir/course/ex-project-with-css/',
+                    'https://sabzlearn.ir/course/gpt-for-code/',
+                    'https://sabzlearn.ir/course/tailwind-css/',
+                    'https://sabzlearn.ir/course/20-lib-reactjs/',
+                    'https://sabzlearn.ir/course/redux/',
+                    'https://sabzlearn.ir/course/next-js/',
+                    'https://sabzlearn.ir/course/pwa/',
+                    'https://sabzlearn.ir/course/git-github/',
+                    'https://sabzlearn.ir/course/typescript/',
+                    'https://sabzlearn.ir/course/node-ex/',
+                    'https://sabzlearn.ir/course/business-for-programmers/',
+                    'https://sabzlearn.ir/course/django-ex/',
+                    'https://sabzlearn.ir/course/data-visualization-with-python/',
+                    'https://sabzlearn.ir/course/freelance-project-price/',
+                    'https://sabzlearn.ir/course/team-experience/',
+                    'https://sabzlearn.ir/course/js-exp-project/',
+                    'https://sabzlearn.ir/course/api-dev-with-nodejs/',
+                    'https://sabzlearn.ir/course/python-code-optimization/',
+                    'https://sabzlearn.ir/course/applied-projects-with-python/',
+                    'https://sabzlearn.ir/course/canvas/',
+                    'https://sabzlearn.ir/course/javascript-interview-questions/',
+                    'https://sabzlearn.ir/course/python/',
+                    'https://sabzlearn.ir/course/pwk/',
+                    'https://sabzlearn.ir/course/linux-for-hackers/',
+                    'https://sabzlearn.ir/course/js-20-lib/',
+                    'https://sabzlearn.ir/course/creative-projects-with-js/',
+                    'https://sabzlearn.ir/course/black-network/',
+                    'https://sabzlearn.ir/course/creative-projects-with-html-css/',
+                    'https://sabzlearn.ir/course/advance-template-design-with-html-css-flexbox/',
+                    'https://sabzlearn.ir/course/reactjs/',
+                    'https://sabzlearn.ir/course/regex/',
+                    'https://sabzlearn.ir/course/npm-tutorial/',
+                    'https://sabzlearn.ir/course/vscode-tutorial/',
+                    'https://sabzlearn.ir/course/css-grid/',
+                    'https://sabzlearn.ir/course/emmet/',
+                    'https://sabzlearn.ir/course/ceh-v11/',
+                    'https://sabzlearn.ir/course/flex-box/',
+                    'https://sabzlearn.ir/course/black-py/',
+                    'https://sabzlearn.ir/course/black-js/',
+                    'https://sabzlearn.ir/course/bootstrap5/',
+                    'https://sabzlearn.ir/course/free-vuejs-training/',
+                    'https://sabzlearn.ir/course/java-script-zero-to-hero/',
+                    'https://sabzlearn.ir/course/start-front-end/',
+                    'https://sabzlearn.ir/course/html-tutorial/',
+                    'https://sabzlearn.ir/course/css-tutorial/',
+                ];
 
                 // insert prooduct links to unvisited
                 for (let j = 0; j < productsUrls.length; j++) {
@@ -146,7 +215,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
 // ============================================ Main
 async function main() {
     try {
-        const INITIAL_PAGE_URL = [''];
+        const INITIAL_PAGE_URL = ['https://sabzlearn.ir/courses/'];
 
         // get random proxy
         const proxyList = [''];
