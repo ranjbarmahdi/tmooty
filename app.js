@@ -162,7 +162,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('h1').length ? $('h1').text().trim() : '';
 
         data['sku'] = uuid;
 
@@ -185,15 +185,24 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
             specifications[key] = value;
         }
 
-        data['description'] = Object.keys(specifications)
-            .map((key) => `${key}:\n${specifications[key]}`)
-            .join('\n\n');
+        data['description'] = $('#furtherDetails > div')
+            .find('h1,h2,p,ul>li,h3,h4,h5,h6,>span')
+            .filter((i, e) => $(e).text()?.trim() && !$(e).text()?.trim().includes('همین حالا'))
+            .map((i, e) => $(e).text()?.trim())
+            .get()
+            .join('\n');
 
-        data['headlines'] = $('notFound')
+        data['headlines'] = $('#collapseOne > div > div > ul > li')
             .map((i, e) => {
-                const title = `${$(e).find('notFound').text()?.trim()}:`;
+                const title = `${$(e)
+                    .find('>p>b')
+                    .text()
+                    .split('\n')
+                    .map((u) => u.trim())
+                    .join(' ')}:`;
+
                 const ambients = $(e)
-                    .find('notFound')
+                    .find('>span>ul>li')
                     .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
                     .get()
                     .join('\n');
@@ -205,18 +214,22 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         data['price'] = '';
         data['discount'] = '';
         data['number_of_students'] = $('notFound').text()?.trim() || '';
-        data['duration'] = $('notFound').text()?.trim() || '';
-        data['teacher_name'] = $('notFound').text()?.trim() || '';
-        data['course_type'] = $('notFound').text()?.trim() || '';
+        data['duration'] = $('li:contains(مدت دوره) > span').text()?.trim() || '';
+        data['teacher_name'] =
+            $('.teacher-item > div > div > .teacher-item-content > .teacher-name')
+                .map((i, e) => $(e).text()?.trim())
+                .get()
+                .join('\n') || '';
+        data['course_type'] = $('li:contains(برگزاری) > span').text()?.trim() || '';
         data['course_level'] = $('notFound').text()?.trim() || '';
-        data['certificate_type'] = $('notFound').text()?.trim() || '';
+        data['certificate_type'] = $('li:contains(گواهینامه) > span').text()?.trim() || '';
         data['education_place'] = $('notFound').text()?.trim() || '';
 
         data['price'] = '';
         data['xpath'] = '';
 
         // price_1
-        const xpaths = [];
+        const xpaths = ['/html/body/main/div[1]/div/div/div[2]/div/ul/li[5]/span/text()'];
         const mainXpath = '';
         if (xpaths.length) {
             // Find Price
@@ -246,7 +259,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         // specification, specificationString
 
         // Download Images
-        const image_xpaths = [];
+        const image_xpaths = ['//*[@id="courseDetails"]//img'];
         let imageUrls = await Promise.all(
             image_xpaths.map(async (_xpath) => {
                 try {
