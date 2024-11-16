@@ -1,5 +1,5 @@
 const cheerio = require('cheerio');
-const { getBrowser, getRandomElement, shuffleArray, delay } = require('./utils');
+const { getBrowser, getRandomElement, shuffleArray, delay, scrollToEnd } = require('./utils');
 const db = require('./config.js');
 
 // ============================================ insertUrl
@@ -111,13 +111,94 @@ async function findAllProductsLinks(page, allPagesLinks) {
             do {
                 c++;
                 console.log(c);
+                await scrollToEnd(page);
+                await delay(2000);
+
                 const html = await page.content();
                 const $ = cheerio.load(html);
 
                 // Getting All Products Urls In This Page
-                const productsUrls = $('notFound')
-                    .map((i, e) => '' + $(e).attr('href'))
-                    .get();
+                const productsUrls = [
+                    'https://roocket.ir/series/learn-css',
+                    'https://roocket.ir/series/laravel-eloquent',
+                    'https://roocket.ir/series/web-design-projects',
+                    'https://roocket.ir/series/learn-nextjs',
+                    'https://roocket.ir/series/woocommerce-complete-tutorial',
+                    'https://roocket.ir/series/telegram-bot-with-laravel',
+                    'https://roocket.ir/series/learn-react-advanced',
+                    'https://roocket.ir/series/whats-new-in-laravel-11',
+                    'https://roocket.ir/series/laravel-restful-api-practical',
+                    'https://roocket.ir/series/tailwindcss-projects',
+                    'https://roocket.ir/series/wordpress-multilingual',
+                    'https://roocket.ir/series/learn-wordpress-elementor',
+                    'https://roocket.ir/series/learn-react-js',
+                    'https://roocket.ir/series/advanced-wordpress-tutorial',
+                    'https://roocket.ir/series/zero-programming-step',
+                    'https://roocket.ir/series/mastering-in-laravel-queues',
+                    'https://roocket.ir/series/coding-with-vscode',
+                    'https://roocket.ir/series/learn-basic-of-wordpress',
+                    'https://roocket.ir/series/build-ecommerce-site-with-react',
+                    'https://roocket.ir/series/finding-an-idea-to-start-a-business',
+                    'https://roocket.ir/series/server-managment-with-pachim',
+                    'https://roocket.ir/series/learn-mvc-in-php-and-build-a-modern-framework',
+                    'https://roocket.ir/series/whats-new-in-laravel-10',
+                    'https://roocket.ir/series/react-useful-libraries',
+                    'https://roocket.ir/series/typescript-in-react',
+                    'https://roocket.ir/series/flutter-from-zero',
+                    'https://roocket.ir/series/best-practice-in-react',
+                    'https://roocket.ir/series/learn-redux',
+                    'https://roocket.ir/series/learn-tailwindcss',
+                    'https://roocket.ir/series/learn-dart',
+                    'https://roocket.ir/series/advanced-python',
+                    'https://roocket.ir/series/whats-new-in-laravel-9',
+                    'https://roocket.ir/series/learn-hilt',
+                    'https://roocket.ir/series/learn-vuejs',
+                    'https://roocket.ir/series/laravel-auth',
+                    'https://roocket.ir/series/learn-oop',
+                    'https://roocket.ir/series/learn-composer',
+                    'https://roocket.ir/series/learn-mysql',
+                    'https://roocket.ir/series/learn-php-8',
+                    'https://roocket.ir/series/learning-sass',
+                    'https://roocket.ir/series/learning-php',
+                    'https://roocket.ir/series/learn-livewire',
+                    'https://roocket.ir/series/whats-new-in-laravel-8',
+                    'https://roocket.ir/series/learn-angular',
+                    'https://roocket.ir/series/learn-node',
+                    'https://roocket.ir/series/whats-new-in-laravel-7',
+                    'https://roocket.ir/series/laravel-projects',
+                    'https://roocket.ir/series/learn-laravel',
+                    'https://roocket.ir/series/php-security',
+                    'https://roocket.ir/series/javascript-projects',
+                    'https://roocket.ir/series/learning-typescript',
+                    'https://roocket.ir/series/learn-html',
+                    'https://roocket.ir/series/learn-webpack',
+                    'https://roocket.ir/series/javascript-es6-tutorial',
+                    'https://roocket.ir/series/javascript-tutorial',
+                    'https://roocket.ir/series/django-scratch',
+                    'https://roocket.ir/series/learn-laravel-and-graphql',
+                    'https://roocket.ir/series/learn-graphql',
+                    'https://roocket.ir/series/learn-python',
+                    'https://roocket.ir/series/learn-mongodb',
+                    'https://roocket.ir/series/unit-test-javascript',
+                    'https://roocket.ir/series/learn-to-create-progressive-web-apps',
+                    'https://roocket.ir/series/learn-design-pattern',
+                    'https://roocket.ir/series/build-an-educational-website-and-shop-with-nodejs',
+                    'https://roocket.ir/series/redis-course',
+                    'https://roocket.ir/series/learning-javascript-es7-es8',
+                    'https://roocket.ir/series/solid-object-oriented-design',
+                    'https://roocket.ir/series/management-and-development-of-open-source-projects',
+                    'https://roocket.ir/series/leran-regular-expressions',
+                    'https://roocket.ir/series/learn-bootstrap-4',
+                    'https://roocket.ir/series/build-a-api-with-nodejs',
+                    'https://roocket.ir/series/learn-git-and-github',
+                    'https://roocket.ir/series/programming-training-package-laravel',
+                    'https://roocket.ir/series/work-with-phpstrom',
+                ];
+                //  $(
+                //     'body > div.z-0.overflow-hidden > div:nth-child(2) > section.mt-14.mb-20 > div > div.grid.grid-cols-12 > div.col-span-12.order-1 > div.mt-12.grid.grid-cols-12 > div > div > div:first-child > a'
+                // )
+                //     .map((i, e) => 'https://roocket.ir' + $(e).attr('href'))
+                //     .get();
 
                 // insert prooduct links to unvisited
                 for (let j = 0; j < productsUrls.length; j++) {
@@ -146,7 +227,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
 // ============================================ Main
 async function main() {
     try {
-        const INITIAL_PAGE_URL = [''];
+        const INITIAL_PAGE_URL = ['https://roocket.ir/series'];
 
         // get random proxy
         const proxyList = [''];

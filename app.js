@@ -162,7 +162,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('h1').length ? $('h1').text().trim() : '';
 
         data['sku'] = uuid;
 
@@ -185,28 +185,53 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
             specifications[key] = value;
         }
 
-        data['description'] = Object.keys(specifications)
-            .map((key) => `${key}:\n${specifications[key]}`)
-            .join('\n\n');
-
-        data['headlines'] = $('notFound')
-            .map((i, e) => {
-                const title = `${$(e).find('notFound').text()?.trim()}:`;
-                const ambients = $(e)
-                    .find('notFound')
-                    .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
-                    .get()
-                    .join('\n');
-                return `${title}\n${ambients}`;
-            })
+        data['description'] = $('#description_box > div.content-area')
+            .find('h1,h2,h3,h4,h5,h6,p')
+            .filter((i, e) => $(e).text()?.trim())
+            .map((i, e) => $(e).text()?.trim())
             .get()
-            .join('\n\n');
+            .join('\n');
+
+        const sessionsElements = await page.$$('#episodes-list > div > div[x-data]');
+
+        if (sessionsElements) {
+            for (const element of sessionsElements) {
+                await element.click();
+                await delay(1500);
+            }
+        }
+
+        html = await page.content();
+        $ = await cheerio.load(html);
+
+        data['headlines'] = $('#episodes-list > div > div[x-data]').length
+            ? $('#episodes-list > div > div[x-data] ')
+                  .map((i, e) => {
+                      const title = `${$(e)
+                          .find('> div.items-center >div > span:last')
+                          .text()
+                          ?.trim()}:`;
+                      const ambients = $(e)
+                          .find('div[x-show] > div > div > div:first-child > a')
+                          .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
+                          .get()
+                          .join('\n');
+                      return `${title}\n${ambients}`;
+                  })
+                  .get()
+                  .join('\n\n')
+            : $('#episodes-list > div > div > div > div:first-child > a')
+                  .filter((i, e) => $(e).text()?.trim())
+                  .map((i, e) => $(e).text()?.trim())
+                  .get()
+                  .join('\n');
 
         data['price'] = '';
         data['discount'] = '';
-        data['number_of_students'] = $('notFound').text()?.trim() || '';
-        data['duration'] = $('notFound').text()?.trim() || '';
-        data['teacher_name'] = $('notFound').text()?.trim() || '';
+        data['number_of_students'] =
+            $('span:contains(شرکت):last').next('span').text()?.trim() || '';
+        data['duration'] = $('span:contains(مدت):last').next('span').text()?.trim() || '';
+        data['teacher_name'] = $('span:contains(مدرس):last').prev('h6').text()?.trim() || '';
         data['course_type'] = $('notFound').text()?.trim() || '';
         data['course_level'] = $('notFound').text()?.trim() || '';
         data['certificate_type'] = $('notFound').text()?.trim() || '';
@@ -216,14 +241,16 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         data['xpath'] = '';
 
         // price_1
-        const xpaths = [];
+        const xpaths = [
+            '/html/body/div[3]/div[2]/section[1]/div/div/div/div[1]/div[1]/div[3]/div[2]/div/div/div/span/text()',
+        ];
         const mainXpath = '';
         if (xpaths.length) {
             // Find Price
             const prices = await getPrice(page, xpaths, false);
 
             if (prices.length == 0) {
-                // data['price'] = 'رایگان';
+                data['price'] = 'رایگان';
             } else if (prices.length == 1) {
                 data['price'] = prices[0];
             } else {
