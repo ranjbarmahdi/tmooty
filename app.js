@@ -162,7 +162,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('h1').length ? $('h1:first').text().trim() : '';
 
         data['sku'] = uuid;
 
@@ -185,63 +185,79 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
             specifications[key] = value;
         }
 
-        data['description'] = Object.keys(specifications)
-            .map((key) => `${key}:\n${specifications[key]}`)
-            .join('\n\n');
-
-        data['headlines'] = $('notFound')
-            .map((i, e) => {
-                const title = `${$(e).find('notFound').text()?.trim()}:`;
-                const ambients = $(e)
-                    .find('notFound')
-                    .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
-                    .get()
-                    .join('\n');
-                return `${title}\n${ambients}`;
-            })
+        data['description'] = $('#fadetext > div')
+            .find('h1,h2,h3,h4,h5,h6,p,span, li')
+            .map((i, e) => $(e).text().trim())
             .get()
-            .join('\n\n');
+            .join('\n');
+
+        data['headlines'] = $(
+            '#main div  div > div.elementor-column.elementor-top-column.elementor-element > div > div.elementor-element.elementor-icon-list--layout-traditional.elementor-list-item-link-full_width.elementor-widget.elementor-widget-icon-list'
+        ).length
+            ? $(
+                  '#main div  div > div.elementor-column.elementor-top-column.elementor-element > div > div.elementor-element.elementor-icon-list--layout-traditional.elementor-list-item-link-full_width.elementor-widget.elementor-widget-icon-list'
+              )
+                  .find('>div>ul>li')
+                  .map((i, e) => $(e).text().trim())
+                  .get()
+                  .join('\n')
+            : $(
+                  '#main > div > section.elementor-section.elementor-top-section.elementor-element.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default > div > div.elementor-column.elementor-top-column.elementor-element > div > div.elementor-element.elementor-widget.elementor-widget-accordion > div:first > div > div'
+              )
+                  .map((i, e) => {
+                      const title = `${$(e)
+                          .find('.elementor-tab-title > .elementor-accordion-title')
+                          .text()
+                          ?.trim()}:`;
+                      const ambients = $(e)
+                          .find('.elementor-tab-content > ul > li > ul > li')
+                          .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
+                          .get()
+                          .join('\n');
+                      return `${title}\n${ambients}`;
+                  })
+                  .get()
+                  .join('\n\n');
 
         data['price'] = '';
         data['discount'] = '';
         data['number_of_students'] = $('notFound').text()?.trim() || '';
-        data['duration'] = $('notFound').text()?.trim() || '';
+        data['duration'] = $('span:contains(مدت دوره):first').text().split(':')[1]?.trim() || '';
         data['teacher_name'] = $('notFound').text()?.trim() || '';
-        data['course_type'] = $('notFound').text()?.trim() || '';
+        data['course_type'] =
+            $('span:contains(نحوه برگزاری):first').text().split(':')[1]?.trim() || '';
         data['course_level'] = $('notFound').text()?.trim() || '';
-        data['certificate_type'] = $('notFound').text()?.trim() || '';
+        data['certificate_type'] = $('notFound').text()?.trim() || 'دارد';
         data['education_place'] = $('notFound').text()?.trim() || '';
 
         data['price'] = '';
         data['xpath'] = '';
 
         // price_1
-        const xpaths = [];
+        const xpaths = [
+            '/html/body/div[1]/div[2]/div/section[3]/div/div[2]/div/section[1]/div/div/div/div[2]/div/ul/li[4]/span[2]/text()',
+            '/html/body/div[1]/div[2]/div/section[2]/div/div[2]/div/section/div/div/div/div[2]/div/ul/li[4]/span[2]/text()',
+        ];
         const mainXpath = '';
-        if (xpaths.length) {
-            // Find Price
-            const prices = await getPrice(page, xpaths, false);
+        // if (xpaths.length) {
+        //     // Find Price
+        //     const prices = await getPrice(page, xpaths, false);
 
-            if (prices.length == 0) {
-                // data['price'] = 'رایگان';
-            } else if (prices.length == 1) {
-                data['price'] = prices[0];
-            } else {
-                data['price'] = prices[0];
-                data['discount'] = prices[1];
-            }
-        }
+        //     if (prices.length == 0) {
+        //         // data['price'] = 'رایگان';
+        //     } else if (prices.length == 1) {
+        //         data['price'] = prices[0];
+        //     } else {
+        //         data['price'] = prices[0];
+        //         data['discount'] = prices[1];
+        //     }
+        // }
 
-        // price_2
-        // const offPercent = $('notFound').get()
-        // if (offPercent.length) {
-        //      data["price"] = $('notFound').text().replace(/[^\u06F0-\u06F90-9]/g, "")
-        //      data["xpath"] = "";
-        // }
-        // else {
-        //      data["price"] = $('notFound').first().text().replace(/[^\u06F0-\u06F90-9]/g, "");
-        //      data["xpath"] = '';
-        // }
+        data['price'] = convertToEnglishNumber(
+            $('span:contains(شهریه):first')
+                .text()
+                .replace(/[^\u06F0-\u06F90-9]/g, '')
+        );
 
         // specification, specificationString
 
