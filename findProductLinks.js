@@ -115,9 +115,11 @@ async function findAllProductsLinks(page, allPagesLinks) {
                 const $ = cheerio.load(html);
 
                 // Getting All Products Urls In This Page
-                const productsUrls = $('notFound')
-                    .map((i, e) => '' + $(e).attr('href'))
+                let productsUrls = $('.dore_i > table > tbody .info_tb')
+                    .map((i, e) => 'https://pact.ir/' + $(e).attr('href'))
                     .get();
+
+                productsUrls = Array.from(new Set(productsUrls));
 
                 // insert prooduct links to unvisited
                 for (let j = 0; j < productsUrls.length; j++) {
@@ -146,7 +148,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
 // ============================================ Main
 async function main() {
     try {
-        const INITIAL_PAGE_URL = [''];
+        const INITIAL_PAGE_URL = ['https://pact.ir/index.cfm'];
 
         // get random proxy
         const proxyList = [''];

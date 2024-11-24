@@ -130,7 +130,7 @@ async function getPrice(page, xpaths, currency) {
                         priceElements[0]
                     );
                     priceText = convertToEnglishNumber(priceText);
-                    let priceNumber = currency ? Number(priceText) : Number(priceText) * 10;
+                    let priceNumber = currency ? Number(priceText) : Number(priceText) / 10;
                     if (priceNumber !== 0) {
                         prices.push(priceNumber);
                     }
@@ -162,7 +162,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('h1:first').length ? $('h1:first').text().trim() : '';
 
         data['sku'] = uuid;
 
@@ -185,38 +185,41 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
             specifications[key] = value;
         }
 
-        data['description'] = Object.keys(specifications)
-            .map((key) => `${key}:\n${specifications[key]}`)
+        data['description'] = $('#dore_info > div:not([class])')
+            .find('p,h1,h2,h3,h4,h5,h6,li')
+            .get()
+            .filter((e) => $(e).text().trim() && !$(e).text().trim().includes('ثبت'))
+            .map((e) => $(e).text().trim())
             .join('\n\n');
 
-        data['headlines'] = $('notFound')
-            .map((i, e) => {
-                const title = `${$(e).find('notFound').text()?.trim()}:`;
-                const ambients = $(e)
-                    .find('notFound')
-                    .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
-                    .get()
-                    .join('\n');
-                return `${title}\n${ambients}`;
-            })
-            .get()
+        let elements = $('.lessons').find('span.titrd, span.txtd');
+        let pairs = [];
+        for (let i = 0; i < elements.length; i += 2) {
+            let firstElement = $(elements[i]);
+            let secondElement = $(elements[i + 1] || null);
+
+            pairs.push([firstElement, secondElement]);
+        }
+
+        data['headlines'] = pairs
+            .map(([first, second]) => `${$(first).text()?.trim()}:\n${$(second).text()?.trim()}`)
             .join('\n\n');
 
         data['price'] = '';
         data['discount'] = '';
         data['number_of_students'] = $('notFound').text()?.trim() || '';
-        data['duration'] = $('notFound').text()?.trim() || '';
+        data['duration'] = $('td:contains(مدت)').next('td').text()?.trim() || '';
         data['teacher_name'] = $('notFound').text()?.trim() || '';
         data['course_type'] = $('notFound').text()?.trim() || '';
         data['course_level'] = $('notFound').text()?.trim() || '';
-        data['certificate_type'] = $('notFound').text()?.trim() || '';
+        data['certificate_type'] = $('td:contains(مدرک)').next('td').text()?.trim() || '';
         data['education_place'] = $('notFound').text()?.trim() || '';
 
         data['price'] = '';
         data['xpath'] = '';
 
         // price_1
-        const xpaths = [];
+        const xpaths = ['/html/body/section[5]/section[2]/div[1]/div/span/text()'];
         const mainXpath = '';
         if (xpaths.length) {
             // Find Price
