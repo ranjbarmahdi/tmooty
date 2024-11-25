@@ -130,7 +130,7 @@ async function getPrice(page, xpaths, currency) {
                         priceElements[0]
                     );
                     priceText = convertToEnglishNumber(priceText);
-                    let priceNumber = currency ? Number(priceText) : Number(priceText) * 10;
+                    let priceNumber = currency ? Number(priceText) : Number(priceText) / 10;
                     if (priceNumber !== 0) {
                         prices.push(priceNumber);
                     }
@@ -162,7 +162,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('h1:first').length ? $('h1:first').text().trim() : '';
 
         data['sku'] = uuid;
 
@@ -185,38 +185,43 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
             specifications[key] = value;
         }
 
-        data['description'] = Object.keys(specifications)
-            .map((key) => `${key}:\n${specifications[key]}`)
-            .join('\n\n');
-
-        data['headlines'] = $('notFound')
-            .map((i, e) => {
-                const title = `${$(e).find('notFound').text()?.trim()}:`;
-                const ambients = $(e)
-                    .find('notFound')
-                    .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
-                    .get()
-                    .join('\n');
-                return `${title}\n${ambients}`;
-            })
+        data['description'] = $('#TargetSection1 > div > p')
             .get()
-            .join('\n\n');
+            .filter((e) => $(e).text().trim() && !$(e).text().trim().includes('مرکز مالی'))
+            .map((e) => $(e).text().trim())
+            .join('\n');
+
+        data['headlines'] = $('#TargetSection3 > div li')
+            .get()
+            .filter((e) => $(e).text().trim() && !$(e).text().trim().includes('مرکز مالی'))
+            .map((e) => $(e).text().trim())
+            .join('\n');
 
         data['price'] = '';
         data['discount'] = '';
         data['number_of_students'] = $('notFound').text()?.trim() || '';
-        data['duration'] = $('notFound').text()?.trim() || '';
-        data['teacher_name'] = $('notFound').text()?.trim() || '';
-        data['course_type'] = $('notFound').text()?.trim() || '';
+        data['duration'] = $('span:contains(تعداد ساعات)').next('span').text()?.trim() || '';
+        data['teacher_name'] =
+            $('h6:contains(فهرست اساتید)')
+                .next('div')
+                .find('> div > div > span')
+                .map((i, e) => $(e).text().trim())
+                .get()
+                .join('\n') || '';
+        data['course_type'] = $('span:contains(نوع دوره)').next('span').text()?.trim() || '';
         data['course_level'] = $('notFound').text()?.trim() || '';
-        data['certificate_type'] = $('notFound').text()?.trim() || '';
+        data['certificate_type'] = $('td:contains(مدرک)').next('td').text()?.trim() || '';
         data['education_place'] = $('notFound').text()?.trim() || '';
 
         data['price'] = '';
         data['xpath'] = '';
 
         // price_1
-        const xpaths = [];
+        const xpaths = [
+            '/html/body/div[7]/section/div/div[2]/form/div/div[1]/div/div[1]/div/div/span/div/div/p/span/text()',
+            '/html/body/div[7]/section/div/div[2]/form/div/div[1]/div/div[1]/div[2]/div/span/div/div/p/del/text()',
+        ];
+
         const mainXpath = '';
         if (xpaths.length) {
             // Find Price
