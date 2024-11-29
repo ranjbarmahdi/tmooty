@@ -162,7 +162,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('h1').length ? $('h1').text().trim() : '';
 
         data['sku'] = uuid;
 
