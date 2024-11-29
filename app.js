@@ -162,41 +162,22 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('h1:first').length ? $('h1:first').text().trim() : '';
 
         data['sku'] = uuid;
 
-        const specifications = {};
-        const liElements = $('notFound');
-        for (const li of liElements) {
-            const key = $(li).find('notFound').text()?.trim();
-            let value = $(li)
-                .find('notFound')
-                .map((i, e) => $(e).text()?.trim())
-                .get()
-                .join('\n');
-            if (!value) {
-                value = $(li)
-                    .find('notFound')
-                    .map((i, e) => $(e).text()?.trim())
-                    .get()
-                    .join('\n');
-            }
-            specifications[key] = value;
-        }
+        data['description'] = $('.wpb_text_column.mytext > div > p').text().trim();
 
-        data['description'] = Object.keys(specifications)
-            .map((key) => `${key}:\n${specifications[key]}`)
-            .join('\n\n');
+        const x = $(
+            '#page-content > section:nth-child(3) > div > div > div > div > div > div > div.w-tabs.layout_ver.navwidth_auto.navpos_right.style_trendy.switch_click.has_scrolling.initialized > div:last > .w-tabs-section > .w-tabs-section-content'
+        );
 
-        data['headlines'] = $('notFound')
+        data['headlines'] = $(
+            '#page-content > section:nth-child(3) > div > div > div > div > div > div > div.w-tabs.layout_ver.navwidth_auto.navpos_right.style_trendy.switch_click.has_scrolling.initialized > div:first > .w-tabs-list-h > a'
+        )
             .map((i, e) => {
-                const title = `${$(e).find('notFound').text()?.trim()}:`;
-                const ambients = $(e)
-                    .find('notFound')
-                    .map((i, e) => `${i + 1} - ${$(e).text()?.trim()}`)
-                    .get()
-                    .join('\n');
+                const title = `${$(e).find('.w-tabs-item-title').text()?.trim()}:`;
+                const ambients = $(x[i]).text().trim();
                 return `${title}\n${ambients}`;
             })
             .get()

@@ -115,7 +115,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
                 const $ = cheerio.load(html);
 
                 // Getting All Products Urls In This Page
-                const productsUrls = $('notFound')
+                const productsUrls = $('#menu-item-27117 > ul > li > ul > li > a')
                     .map((i, e) => '' + $(e).attr('href'))
                     .get();
 
@@ -146,7 +146,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
 // ============================================ Main
 async function main() {
     try {
-        const INITIAL_PAGE_URL = [''];
+        const INITIAL_PAGE_URL = ['https://hayaiee.com/'];
 
         // get random proxy
         const proxyList = [''];
