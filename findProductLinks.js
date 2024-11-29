@@ -115,10 +115,30 @@ async function findAllProductsLinks(page, allPagesLinks) {
                 const $ = cheerio.load(html);
 
                 // Getting All Products Urls In This Page
-                const productsUrls = $('notFound')
+                let productsUrls = [];
+                $(
+                    'body > div.elementor.elementor-6821 .e-con-inner  .elementor-button.elementor-button-link.elementor-size-sm'
+                )
+                    .filter(
+                        (i, e) =>
+                            $(e).attr('href')?.includes('capsule') &&
+                            !$(e).attr('href')?.includes('#')
+                    )
                     .map((i, e) => '' + $(e).attr('href'))
-                    .get();
+                    .get()
+                    .map((e) => productsUrls.push(e));
 
+                $('a.card-action')
+                    .filter(
+                        (i, e) =>
+                            $(e).attr('href')?.includes('/course/') &&
+                            !$(e).attr('href')?.includes('#')
+                    )
+                    .map((i, e) => '' + $(e).attr('href'))
+                    .get()
+                    .map((e) => productsUrls.push(e));
+
+                productsUrls = Array.from(new Set(productsUrls));
                 // insert prooduct links to unvisited
                 for (let j = 0; j < productsUrls.length; j++) {
                     try {
@@ -146,7 +166,10 @@ async function findAllProductsLinks(page, allPagesLinks) {
 // ============================================ Main
 async function main() {
     try {
-        const INITIAL_PAGE_URL = [''];
+        const INITIAL_PAGE_URL = [
+            'https://land.7learn.com/capsules/#python-capsule-section',
+            'https://7learn.com/courses',
+        ];
 
         // get random proxy
         const proxyList = [''];
