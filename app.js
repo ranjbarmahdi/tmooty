@@ -162,7 +162,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         const data = {};
         data['url'] = courseURL;
 
-        data['title'] = $('').length ? $('').text().trim() : '';
+        data['title'] = $('h1').length ? $('h1').text().trim() : '';
 
         data['sku'] = uuid;
 
@@ -185,9 +185,13 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
             specifications[key] = value;
         }
 
-        data['description'] = Object.keys(specifications)
-            .map((key) => `${key}:\n${specifications[key]}`)
-            .join('\n\n');
+        data['description'] = $(
+            '.mf-product-summary .woocommerce-Tabs-panel--description > .wpb-content-wrapper > div:last > div > div > div > div > div > div > div > div '
+        )
+            .find('h2,h3,h4,h5,h6,p,ul')
+            .map((i, e) => `${$(e).text()?.trim()}`)
+            .get()
+            .join('\n');
 
         data['headlines'] = $('notFound')
             .map((i, e) => {
@@ -205,7 +209,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         data['price'] = '';
         data['discount'] = '';
         data['number_of_students'] = $('notFound').text()?.trim() || '';
-        data['duration'] = $('notFound').text()?.trim() || '';
+        data['duration'] = $('#result_box').text()?.trim() || '';
         data['teacher_name'] = $('notFound').text()?.trim() || '';
         data['course_type'] = $('notFound').text()?.trim() || '';
         data['course_level'] = $('notFound').text()?.trim() || '';
@@ -216,7 +220,9 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         data['xpath'] = '';
 
         // price_1
-        const xpaths = [];
+        const xpaths = [
+            '/html/body/div[1]/div[3]/div/div/div/div[2]/div[1]/div[3]/p/span[1]/bdi/text()',
+        ];
         const mainXpath = '';
         if (xpaths.length) {
             // Find Price
