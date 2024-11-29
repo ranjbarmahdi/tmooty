@@ -115,7 +115,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
                 const $ = cheerio.load(html);
 
                 // Getting All Products Urls In This Page
-                const productsUrls = $('notFound')
+                const productsUrls = $('a.header')
                     .map((i, e) => '' + $(e).attr('href'))
                     .get();
 
@@ -130,12 +130,12 @@ async function findAllProductsLinks(page, allPagesLinks) {
                     }
                 }
 
-                nextPageBtn = await page.$$('notFound');
+                nextPageBtn = await page.$$('.pagination > li:last-child:not(.disabled)');
                 if (nextPageBtn.length) {
                     let btn = nextPageBtn[0];
                     await btn.click();
                 }
-                await delay(5000);
+                await delay(8000);
             } while (nextPageBtn.length);
         } catch (error) {
             console.log('Error In findAllProductsLinks function', error);
@@ -146,7 +146,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
 // ============================================ Main
 async function main() {
     try {
-        const INITIAL_PAGE_URL = [''];
+        const INITIAL_PAGE_URL = ['https://gama.ir/search?type=course&sortby=best&perpage=20'];
 
         // get random proxy
         const proxyList = [''];
