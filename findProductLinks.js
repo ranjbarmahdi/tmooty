@@ -115,7 +115,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
                 const $ = cheerio.load(html);
 
                 // Getting All Products Urls In This Page
-                const productsUrls = $('notFound')
+                const productsUrls = $('.course-title > a')
                     .map((i, e) => '' + $(e).attr('href'))
                     .get();
 
@@ -130,7 +130,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
                     }
                 }
 
-                nextPageBtn = await page.$$('notFound');
+                nextPageBtn = await page.$$('a.next.page-numbers');
                 if (nextPageBtn.length) {
                     let btn = nextPageBtn[0];
                     await btn.click();
@@ -146,7 +146,7 @@ async function findAllProductsLinks(page, allPagesLinks) {
 // ============================================ Main
 async function main() {
     try {
-        const INITIAL_PAGE_URL = [''];
+        const INITIAL_PAGE_URL = ['https://civilhouse.ir/courses/'];
 
         // get random proxy
         const proxyList = [''];
