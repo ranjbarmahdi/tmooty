@@ -37,3 +37,5 @@ CREATE TABLE visited (
 
 
 -- docker run --name postgres-container -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=hd6730mrm -e POSTGRES_DB=tmooty -p 5432:5432 -d postgres
+
+-- docker run --name postgres -e POSTGRES_USER=tmooty -e POSTGRES_PASSWORD=tmooty -e POSTGRES_DB=tmooty -p 5432:5432 -d postgres:15
