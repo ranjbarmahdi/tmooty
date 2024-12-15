@@ -266,9 +266,11 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
 
         // price_1
         const xpaths = [
-            '/html/body/div[1]/div/div[1]/main/div/div/div/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[2]/span',
-            '/html/body/div[1]/div/div[1]/main/div/div/div/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[3]/strong/span',
-            '/html/body/div[1]/div/div[1]/main/div/div/div/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[2]/s',
+            '/html/body/div[1]/div/div[1]/main/div/div/div/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[2]/span/text()',
+            '/html/body/div[1]/div/div[1]/main/div/div/div/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[3]/strong/span/text()',
+            '/html/body/div[1]/div/div[1]/main/div/div/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[4]/span/text()',
+            '/html/body/div[1]/div/div[1]/main/div/div/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[2]/s/text()',
+            '/html/body/div[1]/div/div[1]/main/div/div/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[2]/span/text()',
         ];
         if (xpaths.length) {
             // Find Price
