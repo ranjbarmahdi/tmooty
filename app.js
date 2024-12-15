@@ -118,7 +118,7 @@ async function insertUrlToVisited(url) {
 
 // ============================================ findMinPrice
 async function getPrice(page, xpaths, currency) {
-    const prices = [];
+    let prices = [];
     try {
         // Find Price
         for (const _xpath of xpaths) {
@@ -142,6 +142,7 @@ async function getPrice(page, xpaths, currency) {
     } catch (error) {
         console.log('Error In getPrice :', error);
     } finally {
+        prices = Array.from(new Set(prices));
         return prices.sort((a, b) => b - a);
     }
 }
@@ -271,10 +272,10 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         ];
         if (xpaths.length) {
             // Find Price
-            const prices = await getPrice(page, xpaths, false);
+            const prices = await getPrice(page, xpaths, true);
 
             if (prices.length == 0) {
-                data['price'] = 'رایگان';
+                // data['price'] = 'رایگان';
             } else if (prices.length == 1) {
                 data['price'] = prices[0];
             } else {
