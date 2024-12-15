@@ -5,14 +5,14 @@ services:
         user: root
         restart: always
         build:
-            context: .
+            context: . # Ensure there's a Dockerfile in this directory
         ports:
-            - '8000-8100:4008'
+            - '8000-8100:4008' # Ensure your app listens on port 4008
         volumes:
-            - ./${DIRECTORY_NAME}:/usr/src/app/${DIRECTORY_NAME}
+            - ./${DIRECTORY_NAME}:/usr/src/app/${DIRECTORY_NAME} # Ensure DIRECTORY_NAME is set and valid
         networks:
             - custom_network
 
 networks:
     custom_network:
-        external: true
+        external: true # Make sure this network exists
