@@ -1,6 +1,6 @@
 CREATE TABLE courses (
     id SERIAL PRIMARY KEY,
-    url TEXT UNIQUE NOT NULL,
+    url TEXT NOT NULL,
     title TEXT UNIQUE NOT NULL,
     sku TEXT UNIQUE NOT NULL,
     description TEXT,
@@ -18,17 +18,17 @@ CREATE TABLE courses (
 );
 
 
-CREATE TABLE public.problem (
+CREATE TABLE problem (
     id SERIAL PRIMARY KEY,
     url TEXT NOT NULL UNIQUE
 );
 
-CREATE TABLE public.unvisited (
+CREATE TABLE unvisited (
     id SERIAL PRIMARY KEY,
     url TEXT NOT NULL UNIQUE
 );
 
-CREATE TABLE public.visited (
+CREATE TABLE visited (
     id SERIAL PRIMARY KEY,
     url TEXT NOT NULL UNIQUE
 );
