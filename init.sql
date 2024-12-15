@@ -32,3 +32,8 @@ CREATE TABLE visited (
     id SERIAL PRIMARY KEY,
     url TEXT NOT NULL UNIQUE
 );
+
+
+
+
+-- docker run --name postgres-container -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=hd6730mrm -e POSTGRES_DB=tmooty -p 5432:5432 -d postgres
