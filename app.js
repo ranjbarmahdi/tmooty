@@ -219,7 +219,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
             .map((i, e) => $(e).text().trim())
             .get()
             .join(' - ');
-        data['course_type'] = $('notFound').text()?.trim() || '';
+        data['course_type'] = $('notFound').text()?.trim() || 'آنلاین';
         data['course_level'] = $(mainDetails)
             .find('div')
             .filter(
@@ -238,7 +238,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
             .get().length
             ? 'دارد'
             : 'ندارد';
-        data['education_place'] = $('span.transition').text()?.trim() || '';
+        data['education_place'] = $('span.transition').text()?.trim() || 'پلتفرم مکتب‌خونه';
 
         // price_1
         const xpaths = [
@@ -247,7 +247,7 @@ async function scrapeCourse(page, courseURL, imagesDIR, documentsDir) {
         ];
         if (xpaths.length) {
             // Find Price
-            const prices = await getPrice(page, xpaths, false);
+            const prices = await getPrice(page, xpaths, true);
 
             if (prices.length == 0) {
                 // data['price'] = 'رایگان';
@@ -477,5 +477,5 @@ async function run_2(memoryUsagePercentage, cpuUsagePercentage, usageMemory) {
 // })
 // job.start()
 
-run_1(80, 80, 20);
-// run_2(80, 80, 20);
+// run_1(80, 80, 20);
+run_2(80, 80, 20);
